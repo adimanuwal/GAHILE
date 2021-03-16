@@ -12,7 +12,7 @@ from scipy.constants import *
 from astropy.coordinates import CartesianRepresentation,\
     CartesianDifferential, ICRS
 from astropy.coordinates.matrix_utilities import rotation_matrix
-from galcalc1 import HI_H2_masses as Hmass
+from hydromass import HI_H2_masses as Hmass
 import multiprocessing as mp
 from scipy.stats import binned_statistic as binit
 #from pyfof import friends_of_friends as fof
