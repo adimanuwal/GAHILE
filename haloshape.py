@@ -1,4 +1,4 @@
-#Halo Shape
+#Halo shape using the reduced mass tensor
 from   numpy                 import *
 import h5py                  as h5
 import time
@@ -7,7 +7,7 @@ from misc import *
 import multiprocessing as mp
 import pickle
 
-def Mcomp(mdm,p,rp):
+def Mcomp(mdm,p,rp):#reduced mass tensor
  M = zeros((3,3))
  for i in range(3):
   for j in range(3):
@@ -16,16 +16,9 @@ def Mcomp(mdm,p,rp):
 
 Ncrit = 1000
 Gc      = 43.0091 # Newton's gravitational constant in Gadget Units
-files=open('simfiles','r')
-lines=files.readlines()
-line=lines[0].split('\n')[0].split('_')
-Num=line[0]
-fend='_'+line[1]
-exts         = Num.zfill(3)
 
-#os.chdir('/mnt/su3ctm/amanuwal/') 
-fh  = h5.File('HYDRO_'+exts+fend+'_100Mpc_halodat.hdf5','r')
-fDM = h5.File('HYDRO_'+exts+fend+'_100Mpc_DM.hdf5','r')
+fh  = h5.File('HYDRO_028_z000p000_100Mpc_halodat.hdf5','r')
+fDM = h5.File('HYDRO_028_z000p000_100Mpc_DM.hdf5','r')
 
 h = fDM['Header/h'].value
 Om = fh['Header/Omega'].value
