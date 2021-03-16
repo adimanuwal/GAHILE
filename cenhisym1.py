@@ -18,18 +18,18 @@ def lop(par,flux,vel):
  fright = sum(flux[vel>v])
  return abs(fleft-fright)/abs(fleft+fright)
 
-os.chdir('/scratch/pawsey0119/amanuwal/cenprofs/')
-os.system('ls > /group/pawsey0119/amanuwal/hifiles')
+os.chdir('/scratch/pawsey0119/amanuwal/hiprofs/')#directory containing the H I line profiles
+os.system('ls > /group/pawsey0119/amanuwal/hifiles')#storing the names of line profiles
 os.chdir('/group/pawsey0119/amanuwal/')
 
 files=open('hifiles','r')
 lines=files.readlines()
 size=len(lines)
 m=1#method(fixed)
-fn = 'cendmhisym1.hdf5'
+fn = 'lineasym.hdf5'#file for saving the asymmetries
 out = h5.File(fn,'w')
 
-direct = 'cenprofs'
+direct = 'hiprofs'
 
 fn1 = 'HYDRO_028_z000p000_100Mpc_halodat.hdf5'
 f1 = h5.File(fn1,'r')
