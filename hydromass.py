@@ -2,7 +2,7 @@
 
 import numpy as np
 import math
-import galread1 as gr
+import uvb as ib
 from scipy import optimize as op
 from scipy import signal as ss
 from scipy import interpolate
@@ -374,14 +374,14 @@ def HI_H2_masses(mass, SFR, Z, rho, temp, fneutral, redshift, local=False, metho
     
     if UVB=='FG09-Dec11':
         if col not in [1,2,3]: col = 3
-        data = gr.U_MW_FG09_Dec11()
+        data = ib.U_MW_FG09_Dec11()
         redshift_UVB = data[:,0]
         UVbackground = data[:,col]
     else:
         if UVB=='HM12':
-            data = gr.HaardtMadau12()
+            data = ib.HaardtMadau12()
         elif UVB=='FG09':
-            data = gr.FaucherGiguere09()
+            data = ib.FaucherGiguere09()
         redshift_UVB = data[0,:]
         if U_MW_z0 is None:
             UVbackground = data[1,:]/2.2e-12 # Divides through by local MW value (that number is in eV/s).  Original reference is unknown.  This probably should be avoided.
