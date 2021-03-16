@@ -1,12 +1,6 @@
 #Extragalactic Ionising Backgrounds. The functions were originally written by Adam Stevens and can be found in the 'galread.py' file at 'https://github.com/arhstevens/Dirty-AstroPy/blob/master/galprops/galread.py'. 
 
 import numpy as np
-import math
-import sys
-import galcalc1 as gc
-import os
-
-sys.path.insert(0, '..')
 
 def HaardtMadau12():
     return np.array([[  0.00000000e+00,   5.00000000e-02,   1.00000000e-01,
