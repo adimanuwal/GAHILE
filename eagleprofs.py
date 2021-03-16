@@ -383,13 +383,10 @@ for idir,DirList in enumerate(DList):
              #Add Thermal Broadening
              k_b = 1.380648528e-23
              m_p = 1.6726219e-27
-             sigmas = [sqrt(k_b*T1/m_p)*1e-3,sqrt(k_b*T1/m_p)*1e-3/sqrt(3)]#km/s; for los velocity      
-             stype = ['3d','1d']
 
+             sig = sqrt(k_b*T1/m_p)*1e-3/sqrt(3)#km/s; for los velocity 
+  
              for vres in [11]:#[12,15,26]:  
-             #for m in [1]:#range(): 
-              sig = sigmas[1]
-              #sigtype = stype[m]
               dvlos = 1.4 
               vbins = arange(-840-dvlos/2,840+dvlos,dvlos)
               vl = vbins[:-1]
