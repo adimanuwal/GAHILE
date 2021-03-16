@@ -1,5 +1,4 @@
-# Adam Stevens, 2013-2018
-# Functions for reading in data files from simulations and models
+#Extragalactic Ionising Backgrounds. The functions were originally written by Adam Stevens and can be found in the 'galread.py' file at 'https://github.com/arhstevens/Dirty-AstroPy/blob/master/galprops/galread.py'. 
 
 import numpy as np
 import math
