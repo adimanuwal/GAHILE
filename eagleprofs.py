@@ -19,7 +19,7 @@ from astropy.coordinates import CartesianRepresentation,\
     CartesianDifferential, ICRS
 from astropy.coordinates.matrix_utilities import rotation_matrix
 import astropy.constants as C
-from galcalc1 import HI_H2_masses as Hmass
+from hydromass import HI_H2_masses as Hmass
 from scipy.stats import binned_statistic as binit
 import multiprocessing as mp
 from scipy.special import erf
@@ -41,7 +41,7 @@ s=len(lines)
 martini='n'
 mdist='y'
 make='y'
-direct = 'disttestprofs'
+direct = 'lineprofs'
 #os.system('rm -r /scratch/pawsey0119/amanuwal/'+direct)
 os.system('mkdir /scratch/pawsey0119/amanuwal/'+direct)
 for idir,DirList in enumerate(DList):
