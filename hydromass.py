@@ -2,7 +2,7 @@
 
 import numpy as np
 import math
-import uvb as ib
+import eib as ib
 from scipy import optimize as op
 from scipy import signal as ss
 from scipy import interpolate
