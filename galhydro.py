@@ -1,4 +1,4 @@
-#HI masses of the EAGLE galaxies
+#Atomic and molecular hydrogen mass of EAGLE galaxies
 import matplotlib
 from   numpy                 import *
 import h5py                  as h5
