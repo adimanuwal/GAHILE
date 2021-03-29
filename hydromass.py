@@ -3,6 +3,7 @@
 import numpy as np
 import math
 import eib as ib
+from localuv import *
 from scipy import optimize as op
 from scipy import signal as ss
 from scipy import interpolate
@@ -299,11 +300,13 @@ def rahmati2013_neutral_frac(redshift, nH, T, onlyA1=True,noCol = False,onlyCol 
 
     return f_neutral
 
-def HI_H2_masses(mass, SFR, Z, rho, temp, fneutral, redshift, local=False, method=4, mode='T', UVB='FG09-Dec11', U_MW_z0=None, rho_sd=0.01, col=2, gamma_fixed=None, mu_fixed=None, S_Jeans=True, T_CNMmax=243., Pth_Lagos=False, Jeans_cold=False, Sigma_SFR0=1e-9, UV_MW=None, X=None, UV_pos=None, f_esc=0.15, f_ISM=None):
+def HI_H2_masses(mass, pos, radius, SFR, Z, rho, temp, fneutral, redshift, local=False, method=4, mode='T', UVB='FG09-Dec11', U_MW_z0=None, rho_sd=0.01, col=2, gamma_fixed=None, mu_fixed=None, S_Jeans=True, T_CNMmax=243., Pth_Lagos=False, Jeans_cold=False, Sigma_SFR0=1e-9, UV_MW=None, X=None, UV_pos=None, f_esc=0.15, f_ISM=None):
     """
         This is my own version of calculating the atomic- and molecular-hydrogen masses of gas particles/cells from simulations.  This was originally adapted from the Python scripts written by Claudia Lagos and Michelle Furlong, and followed the basis of Appendix A of Lagos et al (2015b).  This has since been vastly modified and is still being developed further.  This has been developed in tandem with Benedikt Diemer's code for Illustris-TNG, and has been tested to produce the same results.  Please cite Stevens et al. (2019, MNRAS, 483, 5334) if you use this function for a publication (also note the erratum to that paper: 2019, MNRAS, 484, 5499).
         Expects each non-default input as an array, except for reshift.  Input definitions and units are as follows:
         mass = total mass of gas particles/cells [M_sun]
+	pos = position of gas particles/cells [Mpc]
+	radius = half-mass radius of gas [Mpc]
         SFR = star formation rate of particles/cells [M_sun/yr]
         Z = ratio of metallic mass to total particle/cell mass
         rho = density of particles/cells [M_sun/pc^3]
@@ -439,7 +442,14 @@ def HI_H2_masses(mass, SFR, Z, rho, temp, fneutral, redshift, local=False, metho
     it_max = 300 # Maximum iterations for calculating f_H2 (arbitrary)
     f_H2_old = np.zeros(len(mass)) # Initialise before iterating
     fneutral_old = np.zeros(len(mass))
-    
+
+	
+    #Estimating the local ionizing field
+    kernel_fft = createFFTKernel3D(128)
+    sf = (SFR>0)
+    a = 1.0/(1+redshift)
+    G0 = cellUV(kernel_fft, radius, a, sf, pos, mass, rho, SFR, Z, X, 0.0, False, 0.0, True, 0.1, 128, 'HM12')#Diemer et al. 2018
+
     if method==1: # GK11, eq6
         for it in range(it_max):
             if it==it_max-1: print('iterations hit maximum for GK11, eq6 in HI_H2_masses()')
@@ -452,7 +462,7 @@ def HI_H2_masses(mass, SFR, Z, rho, temp, fneutral, redshift, local=False, metho
             Sigma = np.sqrt(gamma * const_ratio * f_th * rho * temp / mu) # Approximate surface density as true density * Jeans length (see eq. 7 of Schaye and Dalla Vecchia 2008)
             area = mass / Sigma # Effective area covered by particle
             Sigma_SFR = SFR / area
-            G0 = np.maximum(ISRF_floor, f_esc * Sigma_SFR / Sigma_SFR0) if UV_MW is None else 1.0*UV_MW # Calculte interstellar radiation field, assuming it's proportional to SFR density, normalised by local Sigma_SFR of solar neighbourhood.
+            #G0 = np.maximum(ISRF_floor, f_esc * Sigma_SFR / Sigma_SFR0) if UV_MW is None else 1.0*UV_MW # Calculte interstellar radiation field, assuming it's proportional to SFR density, normalised by local Sigma_SFR of solar neighbourhood.
             D_star = 1.5e-3 * np.log(1. + (3.*G0)**1.7)
             alpha = 2.5*G0 / (1.+(0.5*G0)**2.)
             s = 0.04 / (D_star + D_MW)
@@ -482,7 +492,7 @@ def HI_H2_masses(mass, SFR, Z, rho, temp, fneutral, redshift, local=False, metho
             Sigma_n = fneutral * X * Sigma # neutral hydrogen density
             area = mass / Sigma
             Sigma_SFR = SFR / area
-            G0 = np.maximum(ISRF_floor, f_esc * Sigma_SFR / Sigma_SFR0) if UV_MW is None else 1.0*UV_MW
+            #G0 = np.maximum(ISRF_floor, f_esc * Sigma_SFR / Sigma_SFR0) if UV_MW is None else 1.0*UV_MW
             D_star = 1.5e-3 * np.log(1. + (3.*G0)**1.7)
             alpha = 2.5*G0 / (1.+(0.5*G0)**2.)
             s = 0.04 / (D_star + D_MW)
@@ -517,7 +527,7 @@ def HI_H2_masses(mass, SFR, Z, rho, temp, fneutral, redshift, local=False, metho
             D_star = 0.17*(2.+S**5.)/(1.+S**5.)
             U_star = 9.*D_star/S
             g = np.sqrt(D_MW*D_MW + D_star*D_star)
-            G0 = np.maximum(ISRF_floor, f_esc * SFR / mass * Sigma / Sigma_SFR0) if UV_MW is None else 1.0*UV_MW # Instellar radiation field in units of MW's local field (assumed to be proportional to local SFR density).  Reduced from several lines in other methods.
+            #G0 = np.maximum(ISRF_floor, f_esc * SFR / mass * Sigma / Sigma_SFR0) if UV_MW is None else 1.0*UV_MW # Instellar radiation field in units of MW's local field (assumed to be proportional to local SFR density).  Reduced from several lines in other methods.
             Lambda = np.log(1.+ (0.05/g+G0)**(2./3)*g**(1./3)/U_star)
             n_half = 14. * np.sqrt(D_star) * Lambda / (g*S)
             x = (0.8 + np.sqrt(Lambda)/S**(1./3)) * np.log(fneutral*n_H/n_half)
@@ -547,7 +557,7 @@ def HI_H2_masses(mass, SFR, Z, rho, temp, fneutral, redshift, local=False, metho
             D_star = 0.17*(2.+S**5.)/(1.+S**5.)
             U_star = 9.*D_star/S
             g = np.sqrt(D_MW*D_MW + D_star*D_star)
-            G0 = np.maximum(ISRF_floor, f_esc * SFR / mass * Sigma / Sigma_SFR0) if UV_MW is None else 1.0*UV_MW # Instellar radiation field in units of MW's local field (assumed to be proportional to local SFR density).  Reduced from several lines in other methods.
+            #G0 = np.maximum(ISRF_floor, f_esc * SFR / mass * Sigma / Sigma_SFR0) if UV_MW is None else 1.0*UV_MW # Instellar radiation field in units of MW's local field (assumed to be proportional to local SFR density).  Reduced from several lines in other methods.
             alpha = 0.5 + 1./(1. + np.sqrt(G0*D_MW*D_MW/600.))
             Sigma_R1 = 50./g * np.sqrt(0.001+0.1*G0) / (1. + 1.69*np.sqrt(0.001+0.1*G0)) # Note the erratum on the paper for this equation!
             R = (Sigma * fneutral * X / Sigma_R1)**alpha
@@ -582,7 +592,7 @@ def HI_H2_masses(mass, SFR, Z, rho, temp, fneutral, redshift, local=False, metho
                 if calc_fneutral and not np.allclose(fneutral, fneutral_old, rtol=5e-3): fneutral = rahmati2013_neutral_frac(redshift, rho/denom, temp, UVB=UVB)
             Sigma = np.sqrt(gamma * const_ratio * f_th * rho * temp / mu)
             Sigma_n = fneutral * X * Sigma # neutral hydrogen density
-            G0 = np.maximum(ISRF_floor, f_esc * SFR / mass * Sigma / Sigma_SFR0) if UV_MW is None else 1.0*UV_MW
+            #G0 = np.maximum(ISRF_floor, f_esc * SFR / mass * Sigma / Sigma_SFR0) if UV_MW is None else 1.0*UV_MW
             #
             n_CNM2p = 23.*G0 * 4.1 / (1. + 3.1*D_MW**0.365)
             #
