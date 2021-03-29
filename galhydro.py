@@ -50,7 +50,7 @@ for idir,DirList in enumerate(DList):
      Pos = fg['PartData/PosGas'].value/hpar
      Vel = fg['PartData/VelGas'].value
      T = fg['PartData/TempGas'].value
-     SFR = fg['PartData/SFR'].value*1e+10/hpar
+     SFR = fg['PartData/SFR'].value/hpar
      EOS = fg['PartData/EOS'].value
     # HSM = f['PartData/HSML_Gas'].value/hpar
     # VR = f['HaloData/VR'].value
