@@ -22,6 +22,35 @@ def u2temp(u, gamma=5./3, mu=1.0):
 	temp = u * M_H * mu * (gamma-1.) / k_B
 	return temp
 
+def BaryMP(x,y,eps=0.01,grad=1):
+        """
+        Find the radius for a galaxy from the BaryMP method
+        x = r/r_200
+        y = cumulative baryonic mass profile
+        eps = epsilon, if data 
+        """
+        dydx = np.diff(y)/np.diff(x)
+
+        maxarg = np.argwhere(dydx==np.max(dydx))[0][0] # Find where the gradient peaks
+        xind = np.argwhere(dydx[maxarg:]<=grad)[0][0] + maxarg # The index where the gradient reaches 1
+
+        x2fit_new, y2fit_new = x[xind:], y[xind:] # Should read as, e.g., "x to fit".
+        x2fit, y2fit = np.array([]), np.array([]) # Gets the while-loop going
+
+        while len(y2fit)!=len(y2fit_new):
+                x2fit, y2fit = np.array(x2fit_new), np.array(y2fit_new)
+                p = np.polyfit(x2fit, y2fit, 1)
+                yfit = p[0]*x2fit + p[1]
+                chi = abs(yfit-y2fit) # Separation in the y-direction for the fit from the data
+                chif = (chi<eps) # Filter for what chi-values are acceptable
+                x2fit_new, y2fit_new = x2fit[chif], y2fit[chif]
+
+        r_bmp = x2fit[0] # Radius from the baryonic-mass-profile technique, returned as a fraction of the virial radius!
+        Nfit = len(x2fit) # Number of points on the profile fitted to in the end
+
+        return r_bmp, Nfit
+
+
 def rahmati2013_neutral_frac(redshift, nH, T, onlyA1=True,noCol = False,onlyCol = False,extrapolate=False,local=False, UVB='HM12'):
     
 #; --------------------------------------------------------------------------------------------
