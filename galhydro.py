@@ -170,9 +170,18 @@ for idir,DirList in enumerate(DList):
         SFR1 = SFR1[indices]
 
         T1[(EOS1>0) & (SFR1>0)] = 1e+4
+        
+        p_gas = p_gas[indices,:]
+        p_gas = do_wrap(p_gas,BS)
+        dr_mod = sqrt(sum(p_gas**2,axis=1))
+        inds = argsort(dr_mod)
+        y = cumsum(TM1[inds])
+        y = y/y[-1]
+        x = dr_mod[inds]
+        r50g = interp(0.5,y,x)#gas half-mass radius
 
         #radiative transfer approximation for fHI 
-        NH = Hmass(method=j,mass=TM1,fneutral=None,SFR=SFR1,X=fH1,Z=Z1,rho=rho1,temp=T1,redshift=z,UVB='HM12',local=local)
+        NH = Hmass(method=j,pos=p_gas,radius=r50g,mass=TM1,fneutral=None,SFR=SFR1,X=fH1,Z=Z1,rho=rho1,temp=T1,redshift=z,UVB='HM12',local=local)
         M1 = NH[0]
         MHI[i] = sum(M1)
         MH2[i] = sum(NH[1])
@@ -186,9 +195,6 @@ for idir,DirList in enumerate(DList):
         nhi40[i] = len(fhi[fhi>0.4])
         nhi30[i] = len(fhi[fhi>0.3])
 
-        p_gas = p_gas[indices,:]
-        p_gas = do_wrap(p_gas,BS)
-        dr_mod = sqrt(sum(p_gas**2,axis=1))
         dr = sqrt(p_gas[:,0]**2+p_gas[:,1]**2)
 
         inds = where(dr_mod<=70*1e-3)[0]
