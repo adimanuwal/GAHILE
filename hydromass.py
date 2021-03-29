@@ -448,7 +448,8 @@ def HI_H2_masses(mass, pos, radius, SFR, Z, rho, temp, fneutral, redshift, local
     kernel_fft = createFFTKernel3D(128)
     sf = (SFR>0)
     a = 1.0/(1+redshift)
-    G0 = cellUV(kernel_fft, radius, a, sf, pos, mass, rho, SFR, Z, X, 0.0, False, 0.0, True, 0.1, 128, 'HM12')#Diemer et al. 2018
+    if method!=6 and method!=7:
+     G0 = cellUV(kernel_fft, radius, a, sf, pos, mass, rho, SFR, Z, X, 0.0, False, 0.0, True, 0.1, 128, 'HM12')#Diemer et al. 2018
 
     if method==1: # GK11, eq6
         for it in range(it_max):
