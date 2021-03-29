@@ -90,7 +90,7 @@ for idir,DirList in enumerate(DList):
 
      T = f1['PartData/TempGas'].value
      HSM = f1['PartData/HSML_Gas'].value/hpar
-     SFR = f1['PartData/SFR'].value/hpar
+     SFR = f1['PartData/SFR'].value
      EOS = f1['PartData/EOS'].value
     # VR = f2['HaloData/VR'].value
     # fsub = f2['HaloData/fsub'].value
