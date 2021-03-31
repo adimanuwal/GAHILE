@@ -440,7 +440,7 @@ for idir,DirList in enumerate(DList):
               #dset = f.create_dataset('r', data = p[1])
               f1.close()
 
-     #Parallelising generation of H I line profiles for each galaxy           
+     #Parallelising the generation of H I line profiles for each galaxy (can be done as these are independent tasks. Do not use task-based parallelisation for storing values in an array)           
      pool = mp.Pool(mp.cpu_count())
      pool.map(martini_hi,[l for l in range(len(Grps))])#range(0,90+15,15)])
      pool.close()  
