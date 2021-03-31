@@ -30,6 +30,10 @@ def gaussint(m,s,a,b):#integral of gaussian
  I = 0.5*(erf((b-m)/(sqrt(2)*s))-erf((a-m)/(sqrt(2)*s)))
  return I
 
+def bsens(x,fwhm):#gaussian beam sensitivity (for a single dish observation)
+ sens = exp(-4*log(2)*(x/fwhm)**2)#eq. 3.115 at https://www.cv.nrao.edu/~sransom/web/Ch3.html 
+ return sens
+
 Base    = '/group/pawsey0119/'
 DList   = ['amanuwal/']
 Gc      = 43.0091 # Newton's gravitational constant in Gadget Units
@@ -38,9 +42,10 @@ lines=files.readlines()
 s=len(lines)
 
 #os.chdir(Base+str(DList[0]))
-martini='n'
-mdist='y'
-make='y'
+martini='n'#if you want to use MARTINI to mimic inteferometric observation
+mdist='y'#if you want to create H I line profiles based on the mass profiles
+make='y'#if you want to create any profile
+sigdish='n'#if you want to mimic an unresolved, single dish observation 
 direct = 'lineprofs'
 #os.system('rm -r /scratch/pawsey0119/amanuwal/'+direct)
 os.system('mkdir /scratch/pawsey0119/amanuwal/'+direct)
@@ -53,18 +58,12 @@ for idir,DirList in enumerate(DList):
     fn = Base+DirList+'HYDRO_'+exts+fend+'_100Mpc_halodat.hdf5'
     fn1 = Base+DirList+'HYDRO_'+exts+fend+'_100Mpc_Gas.hdf5'
     fn2 = Base+DirList+'100Mpc_HImassfunc_BR06_tforce.hdf5'
-    #fn3 = Base+DirList+'eaglehisym.hdf5'
-    #fn4 = Base+DirList+'HYDRO_'+exts+fend+'_100Mpc_Star.hdf5'
-   # fn2 = Base+DirList+'100Mpc_RPs_allhalos.hdf5'
-   # fn3 = Base+DirList+'HYDRO_'+exts+fend+'_100Mpc_MProfs_Star.hdf5'
     if (os.path.exists(fn)==True):
      print('\n Reading Header from file:',fn)
      f  = h5.File(fn,"r")
      f1 = h5.File(fn1,"r")
      f2 = h5.File(fn2,"r")
-     #f3 = h5.File(fn3,"r")
-     #f4 = h5.File(fn4,"r") 
-
+        
      hpar = f['Header/h'].value    
      GroupPos = f['HaloData/GroupPos'].value/hpar
      Om = f['Header/Omega'].value
@@ -79,28 +78,14 @@ for idir,DirList in enumerate(DList):
     # Velc = f['HaloData/Vbulk'].value
      f.close()
 
-     #PosDM = f3['PartData/PosDM'].value/hpar
-     #VelDM = f3['PartData/VelDM'].value/hpar
-     #f3.close()
-   
-     #PosStar = f4['PartData/PosStar'].value/hpar
-     #VelStar = f4['PartData/VelStar'].value/hpar
-     #MassStar = f4['PartData/MassStar'].value*1e+10/hpar
-     #f4.close()  
-
      T = f1['PartData/TempGas'].value
      HSM = f1['PartData/HSML_Gas'].value/hpar
      SFR = f1['PartData/SFR'].value
      EOS = f1['PartData/EOS'].value
-    # VR = f2['HaloData/VR'].value
-    # fsub = f2['HaloData/fsub'].value
-     #s = f['HaloData/s'].value
-    # s = f2['HaloData/s_star30'].value
      fH = f1['PartData/fHSall'].value
      TMass = f1['PartData/MassGas'].value*1e+10/hpar#total gas particle mass including all species
      rho = f1['PartData/DensGas'].value*hpar**2*1e+10/(1e+6)**3
      Z = f1['PartData/GasSZ'].value
-     #print(min(nH),max(nH))
      f1.close()
      
      GNs = f2['GN'].value
@@ -111,78 +96,48 @@ for idir,DirList in enumerate(DList):
      f2.close()
 
      #Select galaxies above the cuts
-     inds = where((Mstar>1e+9) & (MHI/Mstar>0.02) & (MHI>=1e+8) & (nhi50>=1000))[0]#xGASS cut
+     inds = where((Mstar>1e+9) & (MHI/Mstar>0.02) & (MHI>=1e+8) & (nhi50>=1000))[0]#xGASS selection + HI-rich particle number cut
      Grps = GNs[inds]
 
      local=False
-     #for l in range(len(Grps)):
+     #Generating angles for random orientations
      rinc = degrees(arccos(random.uniform(-1,1,len(Grps)))) #random inclination with cos uniform distribution
      rorient = random.uniform(0,360,len(Grps))
-
-     #f = open('gndisttest','w')
-     #for j in range(len(Grps)):
-      #inc = round(rinc[j],2)
-      #orient = round(rorient[j],2)
-      #gn = int(Grps[j])
-      #f.write(str(gn)+' '+str(inc)+' '+str(orient))     
-      #if j!=len(Grps)-1:
-       #f.write('\n')
-     #f.close()
-  
-     #Grps = Grps[0:1000]
-     #f = open('gndisttest','r')
-     #lines = f.readlines()
-     #gns = array([],dtype=int)
-     #incs = array([])
-     #orients = array([])
-     #for j in range(len(lines)):
-      #line = lines[j].split('\n')[0].split()
-      #gns = append(gns,int(line[0]))
-      #incs = append(incs,float(line[1]))
-      #orients = append(orients,float(line[2]))
-     #f.close()
-
-     #rinc = array([])
-     #rorient = array([])
-
-     #for j in range(len(Grps)):
-      #sel = where(gns==Grps[j])[0]
-      #rinc = append(rinc,incs[sel])
-      #rorient = append(rorient,orients[sel])
      
      f=open('/group/pawsey0119/amanuwal/gastree.p','rb')
      Tree=pickle.load(f)
 
      def martini_hi(l):
       for j in [7]:
-       for k in [0]:
         GN = int(Grps[l])
         print('Group No.:',GN)
-        indices = Tree.query_ball_point(x=GroupPos[GN-1],r=0.07)
-        if str(indices)=='None':
-          continue
-        if len(indices)<3:
-          continue
+        r200 = float(R_200[GN-1])        
+        indices = Tree.query_ball_point(x=GroupPos[GN-1],r=r200)#Searching particle within an aperture large enough to encompass all bound gas
+        #Generic conditions to check if there are at least 3 gas particles (not relevant if the galaxies are already selected by particle number)
+        #if str(indices)=='None':
+         # continue
+        #if len(indices)<3:
+         #continue
         gns = GNGas[indices]
         sgns = SNGas[indices] 
-        #print('partnum:',partnum)
+
         d = sqrt(sum(GroupPos[GN-1]**2))
-        pos = Pos[indices,:]#[indices1,:]
+        pos = Pos[indices,:]
         cen = GroupPos[GN-1]
         pos = do_wrap(pos-cen,BS)+cen
         P1 = pos
-        TM1 = TMass[indices]#[indices1]#total gas mass
-        T1 = T[indices]#[indices1]
+        TM1 = TMass[indices]
+        T1 = T[indices]
         EOS1 = EOS[indices]
-        hsm1 = HSM[indices]#[indices1] 
-        V1 = Vel[indices,:]#[indices1,:]
-        SFR1 = SFR[indices]#[indices1]
-        fH1 = fH[indices]#[indices1]
-        rho1 = rho[indices]#[indices1]
-        Z1 = Z[indices]#[indices1]
+        hsm1 = HSM[indices]
+        V1 = Vel[indices,:]
+        SFR1 = SFR[indices]
+        fH1 = fH[indices]
+        rho1 = rho[indices]
+        Z1 = Z[indices]
        
-        indices = where((gns==GN) & (sgns==0))[0]
-        if len(indices)>3:
+        indices = where((gns==GN) & (sgns==0))[0]#Selecting all the bound gas
+        if len(indices)>3:#MARTINI needs at least 3 gas particles to work
          P1 = P1[indices]
          TM1 = TM1[indices]#total gas particle mass
          T1 = T1[indices]
@@ -197,7 +152,7 @@ for idir,DirList in enumerate(DList):
          T1[where((EOS1>0) & (SFR1>0))[0]] = 1e+4#Star forming gas particles on the temperature floor
 
          #radiative transfer approximation for fHI (Stevens et al. 2019)
-         HM = Hmass(method=j,mass=TM1,fneutral=None,SFR=SFR1,X=fH1,Z=Z1,rho=rho1,temp=T1,redshift=z,UVB='HM12',local=local)
+         HM = Hmass(method=j, radius=None, pos=None, mass=TM1,fneutral=None,SFR=SFR1,X=fH1,Z=Z1,rho=rho1,temp=T1,redshift=z,UVB='HM12',local=local)
          M1 = HM[0]
          M2 = HM[1]
 
@@ -220,30 +175,12 @@ for idir,DirList in enumerate(DList):
          Hz=H*sqrt(Om[0]*(1+z)**3+Om[1])#Hubble constant in units of h            
          V1 = V1*sqrt(a)+Hz*P1
 
-         if k==0:#HI mass weighted centering
-          PCM = sum(multiply(M1[:,newaxis],P1),axis=0)/sum(M1)
-          VCM = sum(multiply(M1[:,newaxis],V1),axis=0)/sum(M1)
-          ctype = 'HICOM'
+         #HI mass weighted centering
+         PCM = sum(multiply(M1[:,newaxis],P1),axis=0)/sum(M1)
+         VCM = sum(multiply(M1[:,newaxis],V1),axis=0)/sum(M1)
+         ctype = 'HICOM'
 
-         if k==1:#DM mass weighted centering
-          Tree1.search(center=reshape(GroupPos[GN-1],(3,)),radius=float(R_200[GN-1]))
-          inds = Tree1.getIndices()
-          Mp = Mass_DM*ones(len(inds))
-          Pp = PosDM[inds,:]
-          Vp = VelDM[inds,:]
-          PCM = sum(multiply(Mp[:,newaxis],Pp),axis=0)/sum(Mp)
-          VCM = sum(multiply(Mp[:,newaxis],Vp),axis=0)/sum(Mp)
-          ctype = 'DMCOM'
-
-         if k==2:#Stellar mass weighted centering
-          Tree2.search(center=reshape(GroupPos[GN-1],(3,)),radius=0.03)
-          inds = Tree2.getIndices()
-          Mp = MassStar[inds]
-          Pp = PosStar[inds,:]
-          Vp = VelStar[inds,:]
-          PCM = sum(multiply(Mp[:,newaxis],Pp),axis=0)/sum(Mp)
-          VCM = sum(multiply(Mp[:,newaxis],Vp),axis=0)/sum(Mp)
-          ctype = 'StarCOM'
+         r = sqrt(sum((P1-cen)**2,axis=1))#particle radii with respect to the potential centre
 
          P = (P1 - PCM)
          V = (V1 - VCM)
@@ -251,18 +188,15 @@ for idir,DirList in enumerate(DList):
          vxyz_g = V.T
 
          r1 = sqrt(sum(P**2,axis=1))
-         inds = where(r1<=percentile(r1,70))[0]
-         #Make directory for the profiles
-         #os.system('mkdir /scratch/pawsey0119/amanuwal/maxasymprofs/')
+         inds = where(r1<=percentile(r1,70))[0]#indices of inner-most 70% particles
 
-         #def martini_hi(l):
          ascale=60
-         for d in [78]:#[75,129,171]:
-           for gnoise in [0,0.4]:#[0,0.38,0.65,1.56]:   
+         for d in [78]:#galaxy distance in Mpc
+           for gnoise in [0]:#Gaussian instrumental noise in mJy   
             inc = round(rinc[l],2)
             orient = round(rorient[l],2)
             if martini=='y':
-             for vres in [4,10,15,30]:
+             for vres in [1.4]:#Effective velocity resolution
               source = SPHSource(
                distance=d*U.Mpc,
                rotation={'L_coords': (inc * U.deg, orient * U.deg)},
@@ -376,6 +310,79 @@ for idir,DirList in enumerate(DList):
 
              v = matmul(do_rot,vxyz_g)
              p = matmul(do_rot,xyz_g)
+       
+             if singdish=='y':
+              v = matmul(do_rot,vxyz_g)
+              p = matmul(do_rot,xyz_g)
+
+              vx = v[0]
+
+              #Add Thermal Broadening
+              k_b = 1.380648528e-23
+              m_p = 1.6726219e-27
+              sig = sqrt(k_b*T1/m_p)*1e-3/sqrt(3)#km/s; for los velocity      
+
+              #vres = 1.4
+              for vres in [1.4]:#effective velocity resolution
+               dvlos = 1.4
+               vbins = arange(-840-dvlos/2,840+dvlos,dvlos)
+               vl = vbins[:-1]
+               vu = vbins[1:]
+               vcens = 0.5*(vl+vu)
+
+               vxs = tile(vx,(len(vcens),1))#each row for each velocity bin edge
+               sigs = tile(sig,(len(vcens),1))
+
+               vls = multiply(vl[:,newaxis],ones((len(vl),len(vx))))
+               vus = multiply(vu[:,newaxis],ones((len(vu),len(vx))))
+
+               weights = gaussint(vxs,sigs,vls,vus)
+               ws = sum(weights,axis=0)
+               ws[ws==0] = 1
+               weights = weights/ws#for conserving mass
+
+               #mimicing the effect of a Gaussian beam
+               theta = (sqrt(p[1]**2+p[2]**2)/d)*(180*60/pi)#angle subtended by the particle onto the beam (in arcmin)
+               M1s = bsens(theta,3.5)*M1#3.5 arcmin is the FWHM of Arecibo beam
+
+               M1s = weights*M1s#Mass in each bin for each particle
+               #pool = mp.Pool(mp.cpu_count())
+               #pool.map(gaussianm,[i for i in range(len(vx))])#range(0,90+15,15)])
+               #pool.close()       
+               Nsm = int(vres/1.4)
+               dm = sum(M1s,axis=1)#Total Mass in each velocity bin
+               gnoise1 = gnoise*sqrt(Nsm)
+               flux = dm/((2.356e+5)*d**2*dvlos) + random.normal(scale=gnoise1*1e-3,size=len(dm))
+               flux = convolve(flux, Box1DKernel(Nsm))#Box car smoothing
+                
+               fn = '/scratch/pawsey0119/amanuwal/'+direct+'/100MpcGMWC2_HIparts_cenG'+str(GN)+'i'+str(inc)+'o'+str(orient)+'cntr'+ctype+'_'+pr+'_vres'+str(vres)+'_rms'+str(gnoise)+'_d'+str(d)+'.hdf5'
+               f1 = h5.File(fn, "w")
+               f1.create_dataset('p', data = p)
+               f1.create_dataset('vlos', data = vx)
+               f1.create_dataset('v', data = v)
+               #f1.create_dataset('sff', data = sff)
+               f1.create_dataset('Flux', data = flux)
+               f1.create_dataset('MHI', data = M1)
+               f1.create_dataset('SFR', data = SFR1)
+               f1.create_dataset('MH2', data= M2)
+               f1.create_dataset('Mgas', data = TM1)
+               f1.create_dataset('dm', data = dm)
+               f1.create_dataset('Velocity', data = vcens)
+               #f.create_dataset('m_r', data = m_r)
+               #f.create_dataset('r', data = p[1])
+               f1.close()
+
+             sel = where(r<=0.07)[0]#applying a 70 kpc aperture (omit if you want to use all the bound H I)
+             vxyz_g1 = vxyz_g[:,sel]
+             xyz_g1 = xyz_g[:,sel]
+             M11 = M1[sel]
+             T11 = T1[sel]
+             SFR11 = SFR1[sel]
+             M21 = M2[sel]
+             TM11 = TM1[sel]
+
+             v = matmul(do_rot,vxyz_g1)
+             p = matmul(do_rot,xyz_g1)
 
              vx = v[0]
              #print('shape(vx):',shape(vx))
@@ -384,9 +391,9 @@ for idir,DirList in enumerate(DList):
              k_b = 1.380648528e-23
              m_p = 1.6726219e-27
 
-             sig = sqrt(k_b*T1/m_p)*1e-3/sqrt(3)#km/s; for los velocity 
+             sig = sqrt(k_b*T11/m_p)*1e-3/sqrt(3)#contribution from thermal disperson in km/s (for line-of-sight velocity) 
   
-             for vres in [11]:#[12,15,26]:  
+             for vres in [1.4]:#effective velocity resolution  
               dvlos = 1.4 
               vbins = arange(-840-dvlos/2,840+dvlos,dvlos)
               vl = vbins[:-1]
@@ -404,7 +411,7 @@ for idir,DirList in enumerate(DList):
               ws[ws==0] = 1
               weights = weights/ws#for conserving mass
              
-              M1s = weights*M1#Mass in each bin for each particle
+              M1s = weights*M11#Mass in each bin for each particle
               #pool = mp.Pool(mp.cpu_count())
               #pool.map(gaussianm,[i for i in range(len(vx))])#range(0,90+15,15)])
               #pool.close()      
@@ -422,10 +429,10 @@ for idir,DirList in enumerate(DList):
               dset = f1.create_dataset('v', data = v)
               #dset = f1.create_dataset('sff', data = sff)
               dset = f1.create_dataset('Flux', data = flux)
-              dset = f1.create_dataset('MHI', data = M1)
-              dset = f1.create_dataset('SFR', data = SFR1)
-              dset = f1.create_dataset('MH2', data= M2)
-              dset = f1.create_dataset('Mgas', data = TM1)
+              dset = f1.create_dataset('MHI', data = M11)
+              dset = f1.create_dataset('SFR', data = SFR11)
+              dset = f1.create_dataset('MH2', data= M21)
+              dset = f1.create_dataset('Mgas', data = TM11)
               dset = f1.create_dataset('dm', data = dm)
               dset = f1.create_dataset('Velocity', data = vcens)
               #dset = f.create_dataset('m_r', data = m_r)
