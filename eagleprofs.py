@@ -122,6 +122,7 @@ for idir,DirList in enumerate(DList):
         sgns = SNGas[indices] 
 
         d = sqrt(sum(GroupPos[GN-1]**2))
+        zgal = 0#galaxy redshift taken as zero for simplicity for a local Universe (replace this with the redshift corresponding to a luminosity distance of 'd' for the adopted cosmology) 
         pos = Pos[indices,:]
         cen = GroupPos[GN-1]
         pos = do_wrap(pos-cen,BS)+cen
@@ -170,7 +171,7 @@ for idir,DirList in enumerate(DList):
           pr='allatomic'
 
          #Adding Hubble Flow
-         a=1.0/(1+z)
+         a=1.0/(1+z)#scale factor
          H=100*hpar
          Hz=H*sqrt(Om[0]*(1+z)**3+Om[1])#Hubble constant in units of h            
          V1 = V1*sqrt(a)+Hz*P1
@@ -352,7 +353,7 @@ for idir,DirList in enumerate(DList):
                Nsm = int(vres/1.4)
                dm = sum(M1s,axis=1)#Total Mass in each velocity bin
                gnoise1 = gnoise*sqrt(Nsm)
-               flux = dm/((2.356e+5)*d**2*dvlos) + random.normal(scale=gnoise1*1e-3,size=len(dm))
+               flux = dm*(1+zgal)/((2.356e+5)*d**2*dvlos) + random.normal(scale=gnoise1*1e-3,size=len(dm))
                flux = convolve(flux, Box1DKernel(Nsm))#Box car smoothing
                 
                fn = '/scratch/pawsey0119/amanuwal/'+direct+'/100MpcGMWC2_HIparts_cenG'+str(GN)+'i'+str(inc)+'o'+str(orient)+'cntr'+ctype+'_'+pr+'_vres'+str(vres)+'_rms'+str(gnoise)+'_d'+str(d)+'.hdf5'
@@ -419,7 +420,7 @@ for idir,DirList in enumerate(DList):
               Nsm = int(vres/1.4)
               dm = sum(M1s,axis=1)#Total Mass in each velocity bin
               gnoise1 = gnoise*sqrt(Nsm)
-              flux = dm/((2.356e+5)*d**2*dvlos) + random.normal(scale=gnoise1*1e-3,size=len(dm))
+              flux = dm*(1+zgal)/((2.356e+5)*d**2*dvlos) + random.normal(scale=gnoise1*1e-3,size=len(dm))
               flux = convolve(flux, Box1DKernel(Nsm))#Box car smoothing
               #dm = binit(vxs,M1s,statistic='sum',bins=vbins)[0]                                 
               #fn = '/scratch/pawsey0119/amanuwal/'+direct+'/100MpcGMWC2_HIparts_cenG'+str(GN)+'i'+str(inc)+'o'+str(orient)+'cntr'+ctype+'_'+pr+'_vres'+str(vres)+'_rms'+str(gnoise)+'_d'+str(d)+'.hdf5'
