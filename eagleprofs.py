@@ -104,6 +104,7 @@ for idir,DirList in enumerate(DList):
      rinc = degrees(arccos(random.uniform(-1,1,len(Grps)))) #random inclination with cos uniform distribution
      rorient = random.uniform(0,360,len(Grps))
      
+     #Loading the KDTree for gas particles (expedites the particle search)   
      f=open('/group/pawsey0119/amanuwal/gastree.p','rb')
      Tree=pickle.load(f)
 
