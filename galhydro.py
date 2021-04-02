@@ -39,15 +39,16 @@ for idir,DirList in enumerate(DList):
      fg = h5.File(fn1,'r')
      fs = h5.File(fn2,'r')
 
-     hpar = fh['Header/h'].value   
+     hpar = fh['Header/h'].value       
+     z = fh['Header/Redshift'].value
+     a = 1.0/(1+z)
      Om = fh['Header/Omega'].value 
-     GroupPos = fh['HaloData/GroupPos'].value/hpar
+     GroupPos = fh['HaloData/GroupPos'].value*a/hpar
      FirstSub = fh['HaloData/FirstSub'].value
      M_200 = fh['HaloData/Group_M_Crit200'].value*1e+10/hpar 
-     BS = fh['Header/BoxSize'].value/hpar
-     z = fh['Header/Redshift'].value
+     BS = fh['Header/BoxSize'].value*a/hpar
      Vbulk = fh['HaloData/Vbulk'].value 
-     Pos = fg['PartData/PosGas'].value/hpar
+     Pos = fg['PartData/PosGas'].value*a/hpar
      Vel = fg['PartData/VelGas'].value
      T = fg['PartData/TempGas'].value
      SFR = fg['PartData/SFR'].value
@@ -59,8 +60,7 @@ for idir,DirList in enumerate(DList):
      #s = f['HaloData/s_star30'].value
      fH = fg['PartData/fHSall'].value
      TMass = fg['PartData/MassGas'].value*1e+10/hpar#total gas particle mass including all species
-     a = 1.0/(1+z)
-     rho = fg['PartData/DensGas'].value*hpar**2*1e+10/(1e+6)**3
+     rho = fg['PartData/DensGas'].value*hpar**2*1e+10/(a*1e+6)**3
      Z = fg['PartData/GasSZ'].value
      GNGas = abs(fg['PartData/GrpNum_Gas'].value)
      SNGas = abs(fg['PartData/SubNum_Gas'].value)
@@ -227,8 +227,8 @@ for idir,DirList in enumerate(DList):
            Hz=H*sqrt(Om[0]*(1+z)**3+Om[1])#Hubble constant in units of h            
            V = V[indices,:]
            V = V[inds]
-           V = V*sqrt(a)+Hz*P
-           vcen = Vbulk[FirstSub[GN-1],:]*sqrt(a)+Hz*GroupPos[GN-1]
+           V = V*sqrt(a)+Hz*P/a#positions should be in co-moving units here
+           vcen = Vbulk[FirstSub[GN-1],:]+Hz*GroupPos[GN-1]/a
            V = V - vcen
            P = P - GroupPos[GN-1]
  
