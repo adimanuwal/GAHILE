@@ -1,4 +1,4 @@
-#Atomic and molecular hydrogen mass of EAGLE galaxies
+#Atomic and molecular hydrogen mass of EAGLE galaxies for a redshift z snapshot
 import matplotlib
 from   numpy                 import *
 import h5py                  as h5
