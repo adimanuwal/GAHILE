@@ -1,4 +1,4 @@
-#mock HI observations of EAGLE galaxies
+#mock HI observations of EAGLE centrals in z=0 snapshot
 #import matplotlib
 from numpy import *
 import h5py                  as h5
