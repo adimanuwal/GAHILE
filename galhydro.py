@@ -1,4 +1,4 @@
-#Atomic and molecular hydrogen mass of EAGLE galaxies for a redshift z snapshot
+#Atomic and molecular hydrogen mass of EAGLE centrals for a redshift z snapshot
 import matplotlib
 from   numpy                 import *
 import h5py                  as h5
@@ -61,7 +61,7 @@ for idir,DirList in enumerate(DList):
      Z = fg['PartData/GasSZ'].value
      GNGas = abs(fg['PartData/GrpNum_Gas'].value)
      SNGas = abs(fg['PartData/SubNum_Gas'].value)
-     Mstar = Mass[:,4]
+     Ms_30 = Mass_30[FirstSub,4]
      #Mr_star = fs['HaloData/Mr_star'].value*1e+10/hpar#Stellar Particle Mass in solar masses
      #r_cen = fs['HaloData/r_cen'].value*1e+3#radius from central centre in kpc
      fh.close()
@@ -70,7 +70,7 @@ for idir,DirList in enumerate(DList):
 
      #Mr_star = Mr_star[:,unique(where(r_cen <= 30))]#taking values till 30 kpc
      #Ms_30 = sum(Mr_star, axis=1)
-     indices = where(Mass_30>=1e+9)[0]
+     indices = where(Ms_30>=1e+9)[0]
      Grps = indices+1 #Selecting well resolved galaxies
 
      #For H I mass profile and surface density
@@ -132,8 +132,9 @@ for idir,DirList in enumerate(DList):
       for i in range(size):
        #def masses(i):
        GN = Grps[i]
-       print('Group No.:',Grps[i])
-       indices = Tree.query_ball_point(x=GroupPos[GN-1],r=0.1)
+       r200 = float(R_200[GN-1])
+       indices = Tree.query_ball_point(x=GroupPos[GN-1],r=r200)
+
        if str(indices)=='None':
         continue
        if len(indices)<=3:
