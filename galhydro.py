@@ -8,7 +8,6 @@ import matplotlib.lines as pltline
 from matplotlib.ticker import MultipleLocator, FormatStrFormatter
 import os
 from scipy.constants import *
-#from prody.kdtree.kdtree import KDTree
 from astropy.coordinates import CartesianRepresentation,\
     CartesianDifferential, ICRS
 from astropy.coordinates.matrix_utilities import rotation_matrix
@@ -32,7 +31,7 @@ for idir,DirList in enumerate(DList):
     exts         = Num.zfill(3)
     fn = Base+DirList+'HYDRO_'+exts+fend+'_100Mpc_halodat.hdf5'
     fn1 = Base+DirList+'HYDRO_'+exts+fend+'_100Mpc_Gas.hdf5'
-    fn2 = Base+DirList+'HYDRO_'+exts+fend+'_100Mpc_MProfs_Star.hdf5'
+    #fn2 = Base+DirList+'HYDRO_'+exts+fend+'_100Mpc_MProfs_Star.hdf5'
     if (os.path.exists(fn)==True):
      print('\n Reading Header from file:',fn)
      fh = h5.File(fn,"r")
@@ -46,6 +45,9 @@ for idir,DirList in enumerate(DList):
      GroupPos = fh['HaloData/GroupPos'].value*a/hpar
      FirstSub = fh['HaloData/FirstSub'].value
      M_200 = fh['HaloData/Group_M_Crit200'].value*1e+10/hpar 
+     Mass = fh['HaloData/MassType'].value*1e+10/hpar
+     Mass_30 = fh['HaloData/Mass_030kpc'].value*1e+10/hpar
+     R_200 = fh['HaloData/Group_R_Crit200'].value/hpar
      BS = fh['Header/BoxSize'].value*a/hpar
      Vbulk = fh['HaloData/Vbulk'].value 
      Pos = fg['PartData/PosGas'].value*a/hpar
@@ -53,29 +55,22 @@ for idir,DirList in enumerate(DList):
      T = fg['PartData/TempGas'].value
      SFR = fg['PartData/SFR'].value
      EOS = fg['PartData/EOS'].value
-    # HSM = f['PartData/HSML_Gas'].value/hpar
-    # VR = f['HaloData/VR'].value
-    # fsub = f['HaloData/fsub'].value
-    # s = f['HaloData/s'].value
-     #s = f['HaloData/s_star30'].value
      fH = fg['PartData/fHSall'].value
      TMass = fg['PartData/MassGas'].value*1e+10/hpar#total gas particle mass including all species
      rho = fg['PartData/DensGas'].value*hpar**2*1e+10/(a*1e+6)**3
      Z = fg['PartData/GasSZ'].value
      GNGas = abs(fg['PartData/GrpNum_Gas'].value)
      SNGas = abs(fg['PartData/SubNum_Gas'].value)
-
-     #print(min(nH),max(nH))
-
-     Mr_star = fs['HaloData/Mr_star'].value*1e+10/hpar#Stellar Particle Mass in solar masses
-     r_cen = fs['HaloData/r_cen'].value*1e+3#radius from central centre in kpc
+     Mstar = Mass[:,4]
+     #Mr_star = fs['HaloData/Mr_star'].value*1e+10/hpar#Stellar Particle Mass in solar masses
+     #r_cen = fs['HaloData/r_cen'].value*1e+3#radius from central centre in kpc
      fh.close()
      fs.close()
      fg.close()
 
-     Mr_star = Mr_star[:,unique(where(r_cen <= 30))]#taking values till 30 kpc
-     Ms_30 = sum(Mr_star, axis=1)
-     indices = where(Ms_30>=1e+9)[0]
+     #Mr_star = Mr_star[:,unique(where(r_cen <= 30))]#taking values till 30 kpc
+     #Ms_30 = sum(Mr_star, axis=1)
+     indices = where(Mass_30>=1e+9)[0]
      Grps = indices+1 #Selecting well resolved galaxies
 
      #For H I mass profile and surface density
@@ -138,8 +133,6 @@ for idir,DirList in enumerate(DList):
        #def masses(i):
        GN = Grps[i]
        print('Group No.:',Grps[i])
-       #Tree.search(center=reshape(GroupPos[GN-1],(3,)),radius=0.1)
-       #indices = Tree.getIndices()
        indices = Tree.query_ball_point(x=GroupPos[GN-1],r=0.1)
        if str(indices)=='None':
         continue
