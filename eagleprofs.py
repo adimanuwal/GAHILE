@@ -25,6 +25,7 @@ import multiprocessing as mp
 from scipy.special import erf
 from astropy.convolution import convolve, Box1DKernel
 import pickle
+from astropy.cosmology import Planck15, z_at_value
 
 def gaussint(m,s,a,b):#integral of gaussian
  I = 0.5*(erf((b-m)/(sqrt(2)*s))-erf((a-m)/(sqrt(2)*s)))
@@ -421,6 +422,7 @@ for idir,DirList in enumerate(DList):
               Nsm = int(vres/1.4)
               dm = sum(M1s,axis=1)#Total Mass in each velocity bin
               gnoise1 = gnoise*sqrt(Nsm)
+              zgal = z_at_value(Planck15.luminosity_distance,d*U.Mpc)
               flux = dm*(1+zgal)/((2.356e+5)*d**2*dvlos) + random.normal(scale=gnoise1*1e-3,size=len(dm))
               flux = convolve(flux, Box1DKernel(Nsm))#Box car smoothing
               #dm = binit(vxs,M1s,statistic='sum',bins=vbins)[0]                                 
