@@ -1,4 +1,6 @@
-#For determining total neutral and atomic/molecular hydrogen in gas particles. The functions are slightly modified versions of the original code written by Adam Stevens and can be found in the 'galcalc.py' file at 'https://github.com/arhstevens/Dirty-AstroPy/blob/master/galprops/galcalc.py'.
+#For determining total neutral and atomic/molecular hydrogen in gas particles. 
+#The functions are slightly modified versions of the original code written by Adam Stevens 
+#and can be found in the 'galcalc.py' file at 'https://github.com/arhstevens/Dirty-AstroPy/blob/master/galprops/galcalc.py'.
 
 import numpy as np
 import math
